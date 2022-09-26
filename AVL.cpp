@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <string>
 using namespace std;
 
 struct Student {
@@ -51,6 +52,8 @@ struct AVL {
 
 	/*==== Behaviors ====*/
     int findHeight(Node* node);
+	Node* rotateLeft(Node* node);
+	Node* rotateRight(Node* node);
 	void printInOrder_Helper(Node* root);
     void printInOrder();
 	void printPostOrder_Helper(Node* current);
@@ -109,9 +112,28 @@ int AVL::findHeight(Node* node){
 	return levels;
 }
 
+AVL::Node* AVL::rotateLeft(Node* node){
+
+	Node* grandchild = node->right->left;
+	Node* newParent = node->right;
+	newParent->left = node;
+	node->right = grandchild;
+	return newParent;
+}
+
+AVL::Node* AVL::rotateRight(Node* node){
+
+	Node* grandchild = node->left->right;
+	Node* newParent = node->left;
+	newParent->right = node;
+	node->left = grandchild;
+	return newParent;
+}
+
 AVL::Node* AVL::insertHelper(Node* root, Student student) {
 
 	if (root == nullptr) {
+		cout << "successful" << endl;
 		return new Node(student);
 	}
 	else if (student.ID < root->student.ID) {
@@ -121,22 +143,34 @@ AVL::Node* AVL::insertHelper(Node* root, Student student) {
 		root->right = insertHelper(root->right, student);
 	}
 	root->height = findHeight(root);
+	root->left->height = findHeight(root->left);
+	root->right->height = findHeight(root->right);
 	//subtree is right heavy
 	if(root->left->height - root->right->height < -1){
 		if(root->right->left->height - root->right->right->height > 1){
 			//right left rotation & update height
+			root = rotateLeft(rotateRight(root));
+			root->height = findHeight(root);
 		}
 		else{
 			//left rotation & update height
+			root = rotateRight(rotateLeft(root));
+			root->height = findHeight(root);
 		}
 	}
 	//subtree is left heavy
 	if(root->left->height - root->right->height > 1){
 		if(root->left->left->height - root->left->right->height < -1){
 			//left right rotation & update height
+			root = rotateLeft(root);
+			root = rotateRight(root);
+			root->height = findHeight(root);
 		}
 		else{
 			//right rotation & update height
+			root = rotateRight(root);
+			root = rotateLeft(root);
+			root->height = findHeight(root);
 		}
 	}
 	return root;
@@ -149,18 +183,18 @@ void AVL::insert(Student student){
 
 AVL::Node* AVL::searchID_Helper(Node* root, int ID){
 
-	if(_root == nullptr){
-        cout << "unsuccessful" << endl;
-        return _root;
-    }
+	if(root == nullptr){
+		cout << "unsuccessful" << endl;
+		return root;
+	}
     if(root->student.ID == ID){
         cout << root->student.name << endl;
         return root;
     }
-    else if (root->student.ID < ID && root->left != nullptr) {
+    else if (root->student.ID < ID) {
 		root->left = searchID_Helper(root->left, ID);
 	}
-	else if (root->student.ID > ID && root->right != nullptr) {
+	else if (root->student.ID > ID && root->right) {
 		root->right = searchID_Helper(root->right, ID);
 	}
 	return root;
