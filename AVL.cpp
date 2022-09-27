@@ -37,8 +37,8 @@ struct AVL {
 
 	/*==== Construction / Destruction ====*/
 	AVL();
-	~AVL();
-	void destruct(Node* root);
+	//~AVL();
+	//void destruct(Node* root);
 
 	/*==== Insertion / Deletion ====*/
 	Node* insertHelper(Node* root, Student student);
@@ -56,40 +56,37 @@ struct AVL {
 	Node* rotateRight(Node* node);
 	void printInOrder_Helper(Node* root);
     void printInOrder();
-	void printPostOrder_Helper(Node* current);
+	void printPostOrder_Helper(Node* root);
     void printPostOrder();
-	void printPreOrder_Helper(Node* current);
+	void printPreOrder_Helper(Node* root);
     void printPreOrder();
+	void printLevelCount();
 };
 
 AVL::AVL() {
 	_root = nullptr;
 };
 
-void AVL::destruct(Node* root) 
-{
-  if (root->left){
-    destruct(root->left);
-  }
-  if (root->right){
-    destruct(root->right);
-  }
-  delete root;
-}
+// void AVL::destruct(Node* root) 
+// {
+//   if (root->left){
+//     destruct(root->left);
+//   }
+//   if (root->right){
+//     destruct(root->right);
+//   }
+//   delete root;
+// }
 
-AVL::~AVL(){
+// AVL::~AVL(){
 
-	destruct(_root);
-}
+// 	destruct(_root);
+// }
 
 int AVL::findHeight(Node* node){
 
 	int levels = 0;
     queue<Node*> nodes;
-
-	if(node->left == nullptr && node->right == nullptr){
-		return 0;
-	}
 
     if(node != nullptr){
       nodes.push(node);
@@ -107,7 +104,6 @@ int AVL::findHeight(Node* node){
 	  levels++;
       nodes.pop();
     }
-	node->height = levels;
 
 	return levels;
 }
@@ -143,11 +139,10 @@ AVL::Node* AVL::insertHelper(Node* root, Student student) {
 		root->right = insertHelper(root->right, student);
 	}
 	root->height = findHeight(root);
-	root->left->height = findHeight(root->left);
-	root->right->height = findHeight(root->right);
+	
 	//subtree is right heavy
-	if(root->left->height - root->right->height < -1){
-		if(root->right->left->height - root->right->right->height > 1){
+	if(findHeight(root->left) - findHeight(root->right) < -1){
+		if(findHeight(root->right->left) - findHeight(root->right->right) > 1){
 			//right left rotation & update height
 			root = rotateLeft(rotateRight(root));
 			root->height = findHeight(root);
@@ -159,8 +154,8 @@ AVL::Node* AVL::insertHelper(Node* root, Student student) {
 		}
 	}
 	//subtree is left heavy
-	if(root->left->height - root->right->height > 1){
-		if(root->left->left->height - root->left->right->height < -1){
+	if(findHeight(root->left) - findHeight(root->right) > 1){
+		if(findHeight(root->left->left) - findHeight(root->left->right) < -1){
 			//left right rotation & update height
 			root = rotateLeft(root);
 			root = rotateRight(root);
@@ -181,28 +176,54 @@ void AVL::insert(Student student){
     _root = insertHelper(_root, student);
 }
 
+//Complete
 AVL::Node* AVL::searchID_Helper(Node* root, int ID){
 
 	if(root == nullptr){
 		cout << "unsuccessful" << endl;
-		return root;
+		return nullptr;
+	} else{
+		if(root->student.ID == ID){
+			cout << root->student.name << endl;
+			return root;
+		}
+		else if(ID < root->student.ID){
+			root->left = searchID_Helper(root->left, ID);
+		}
+		else if(ID > root->student.ID){
+			root->right = searchID_Helper(root->right, ID);
+		}
 	}
-    if(root->student.ID == ID){
-        cout << root->student.name << endl;
-        return root;
-    }
-    else if (root->student.ID < ID) {
-		root->left = searchID_Helper(root->left, ID);
-	}
-	else if (root->student.ID > ID && root->right) {
-		root->right = searchID_Helper(root->right, ID);
-	}
-	return root;
+	return nullptr;
 }
 
 void AVL::searchID(int ID){
 
     _root = searchID_Helper(_root, ID);
+}
+
+AVL::Node* AVL::searchName_Helper(Node* root, string name){
+	
+	if(root == nullptr){
+		cout << "unsuccessful" << endl;
+		return nullptr;
+	}
+	else{
+		if(root->student.name == name){
+			cout << root->student.ID << endl;
+			return root;
+		}
+		else{
+			root->left = searchName_Helper(root->left, name);
+			root->right = searchName_Helper(root->right, name);
+		}
+	}
+	return nullptr;
+}
+
+void AVL::searchName(string name){
+	
+	_root = searchName_Helper(_root, name);
 }
 
 void AVL::printPreOrder_Helper(Node* root){
@@ -258,4 +279,10 @@ void AVL::printPostOrder(){
 
     printPostOrder_Helper(_root);
     cout << endl;
+}
+
+void AVL::printLevelCount(){
+
+	int levels = findHeight(_root);
+	cout << levels << endl;
 }
