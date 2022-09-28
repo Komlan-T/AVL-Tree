@@ -37,8 +37,8 @@ struct AVL {
 
 	/*==== Construction / Destruction ====*/
 	AVL();
-	~AVL();
-	void destruct(Node* root);
+	//~AVL();
+	//void destruct(Node* root);
 
 	/*==== Insertion / Deletion ====*/
 	Node* insertHelper(Node* root, Student student);
@@ -69,21 +69,21 @@ AVL::AVL() {
 	_root = nullptr;
 };
 
-void AVL::destruct(Node* root) 
-{
-  if (root->left){
-    destruct(root->left);
-  }
-  if (root->right){
-    destruct(root->right);
-  }
-  delete root;
-}
+// void AVL::destruct(Node* root) 
+// {
+//   if (root->left){
+//     destruct(root->left);
+//   }
+//   if (root->right){
+//     destruct(root->right);
+//   }
+//   delete root;
+// }
 
-AVL::~AVL(){
+// AVL::~AVL(){
 
-	destruct(_root);
-}
+// 	destruct(_root);
+// }
 
 int AVL::findHeight(Node* node){
 
@@ -252,31 +252,35 @@ AVL::Node* AVL::searchID_Helper(Node* root, int ID){
 
 void AVL::searchID(int ID){
 
-    _root = searchID_Helper(_root, ID);
+	Node* temp = searchID_Helper(_root, ID);
+    //_root = searchID_Helper(_root, ID);
 }
 
 AVL::Node* AVL::searchName_Helper(Node* root, string name){
 
-	if(nameExist(_root, name) == false){
-		cout << "unsuccessful" << endl;
-		return nullptr; 
-	}
-	if(root == nullptr){
+	if(nameExist(_root, name) ){
+		if(root == nullptr){
 		return nullptr;
 	}
 	else{
 		if(root->student.name == name){
 			cout << root->student.ID << endl;
+			return root;
 		}
 		root->left = searchName_Helper(root->left, name);
 		root->right = searchName_Helper(root->right, name);
+	} 
+	}
+	else{
+		cout << "unsuccessful" << endl;
 	}
 	return nullptr;
 }
 
 void AVL::searchName(string name){
 	
-	_root = searchName_Helper(_root, name);
+	Node* temp = searchName_Helper(_root, name);
+	//_root = searchName_Helper(_root, name);
 }
 
 void AVL::printPreOrder_Helper(Node* root, vector<string>& names){
@@ -351,6 +355,7 @@ void AVL::printLevelCount(){
 
 	if(_root == nullptr){
 		cout << "0" << endl;
+		return;
 	}
 	cout << findHeight(_root) << endl;
 }
