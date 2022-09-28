@@ -37,8 +37,8 @@ struct AVL {
 
 	/*==== Construction / Destruction ====*/
 	AVL();
-	//~AVL();
-	//void destruct(Node* root);
+	~AVL();
+	void destruct(Node* root);
 
 	/*==== Insertion / Deletion ====*/
 	Node* insertHelper(Node* root, Student student);
@@ -69,21 +69,21 @@ AVL::AVL() {
 	_root = nullptr;
 };
 
-// void AVL::destruct(Node* root) 
-// {
-//   if (root->left){
-//     destruct(root->left);
-//   }
-//   if (root->right){
-//     destruct(root->right);
-//   }
-//   delete root;
-// }
+void AVL::destruct(Node* root) 
+{
+  if (root->left){
+    destruct(root->left);
+  }
+  if (root->right){
+    destruct(root->right);
+  }
+  delete root;
+}
 
-// AVL::~AVL(){
+AVL::~AVL(){
 
-// 	destruct(_root);
-// }
+	destruct(_root);
+}
 
 int AVL::findHeight(Node* node){
 
@@ -180,11 +180,8 @@ AVL::Node* AVL::rotateRight(Node* node){
 
 AVL::Node* AVL::insertHelper(Node* root, Student student) {
 
-	if(IDExist(_root, student.ID)){
-		cout << "unsuccessful" << endl;
-		return nullptr;
-	}
-	if (root == nullptr) {
+	if(IDExist(_root, student.ID) == false){
+		if (root == nullptr) {
 		cout << "successful" << endl;
 		return new Node(student);
 	}
@@ -222,8 +219,60 @@ AVL::Node* AVL::insertHelper(Node* root, Student student) {
 			root->height = findHeight(root);
 		}
 	}
+	}
+	else{
+		cout << "unsuccessful" << endl;
+	}
 	return root;
 }
+
+
+// AVL::Node* AVL::insertHelper(Node* root, Student student) {
+
+// 	if(IDExist(_root, student.ID)){
+// 		cout << "unsuccessful" << endl;
+// 		return nullptr;
+// 	}
+// 	if (root == nullptr) {
+// 		cout << "successful" << endl;
+// 		return new Node(student);
+// 	}
+// 	else if (student.ID < root->student.ID) {
+// 		root->left = insertHelper(root->left, student);
+// 	}
+// 	else if (student.ID > root->student.ID) {
+// 		root->right = insertHelper(root->right, student);
+// 	}
+// 	root->height = findHeight(root);
+	
+// 	//subtree is right heavy
+// 	if(findHeight(root->left) - findHeight(root->right) < -1){
+// 		if(findHeight(root->right->left) - findHeight(root->right->right) > 0){
+// 			//right left rotation & update height
+// 			root = rotateLeft(rotateRight(root));
+// 			root->height = findHeight(root);
+// 		}
+// 		else{
+// 			//left rotation & update height
+// 			root = rotateLeft(root);
+// 			root->height = findHeight(root);
+// 		}
+// 	}
+// 	//subtree is left heavy
+// 	if(findHeight(root->left) - findHeight(root->right) > 1){
+// 		if(findHeight(root->left->left) - findHeight(root->left->right) < 0){
+// 			//left right rotation & update height
+// 			root = rotateRight(rotateLeft(root));
+// 			root->height = findHeight(root);
+// 		}
+// 		else{
+// 			//right rotation & update height
+// 			root = rotateRight(root);
+// 			root->height = findHeight(root);
+// 		}
+// 	}
+// 	return root;
+// }
 
 void AVL::insert(Student student){
 	
@@ -253,7 +302,6 @@ AVL::Node* AVL::searchID_Helper(Node* root, int ID){
 void AVL::searchID(int ID){
 
 	Node* temp = searchID_Helper(_root, ID);
-    //_root = searchID_Helper(_root, ID);
 }
 
 AVL::Node* AVL::searchName_Helper(Node* root, string name){
@@ -280,7 +328,6 @@ AVL::Node* AVL::searchName_Helper(Node* root, string name){
 void AVL::searchName(string name){
 	
 	Node* temp = searchName_Helper(_root, name);
-	//_root = searchName_Helper(_root, name);
 }
 
 void AVL::printPreOrder_Helper(Node* root, vector<string>& names){
