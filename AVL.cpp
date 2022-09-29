@@ -41,8 +41,12 @@ struct AVL {
 	void destruct(Node* root);
 
 	/*==== Insertion / Deletion ====*/
-	Node* insertHelper(Node* root, Student student);
+	Node* insert_Helper(Node* root, Student student);
+	//Node* remove_Helper(Node* root, int ID);
 	void insert(Student student);
+	//void remove(int ID);
+	//Node* removeInOrder(int N);
+
 
 	/*==== Search ====*/
 	Node* searchName_Helper(Node* root, string name);
@@ -87,27 +91,12 @@ AVL::~AVL(){
 
 int AVL::findHeight(Node* node){
 
-	int levels = 0;
-    queue<Node*> nodes;
-
-    if(node != nullptr){
-      nodes.push(node);
-    }
-
-    while(!nodes.empty()){
-
-      if(nodes.front()->left != nullptr){
-        nodes.push(nodes.front()->left);
-      }
-      if(nodes.front()->right != nullptr){
-        nodes.push(nodes.front()->right);
-      }
-      
-	  levels++;
-      nodes.pop();
-    }
-
-	return levels;
+	if(node == nullptr){
+		return 0;
+	}
+	else{
+		return max(findHeight(node->left), findHeight(node->right)) +  1;
+	}
 }
 
 bool AVL::nameExist(Node* root, string name){
@@ -178,7 +167,14 @@ AVL::Node* AVL::rotateRight(Node* node){
 	return newParent;
 }
 
-AVL::Node* AVL::insertHelper(Node* root, Student student) {
+/*Add a Student object into the tree with the specified name, NAME and GatorID number, ID.
+Balance the tree automatically if necessary.
+The ID must be unique.
+The ID and NAME must satisfy the constraints stated below.
+Also, prints “successful” if insertion is successful and prints “unsuccessful” otherwise.
+NAME identifier will be separated by double inverted commas for parsing, e.g. "Josh Smith".*/
+
+AVL::Node* AVL::insert_Helper(Node* root, Student student) {
 
 	if(IDExist(_root, student.ID) == false){
 		if (root == nullptr) {
@@ -186,10 +182,10 @@ AVL::Node* AVL::insertHelper(Node* root, Student student) {
 		return new Node(student);
 	}
 	else if (student.ID < root->student.ID) {
-		root->left = insertHelper(root->left, student);
+		root->left = insert_Helper(root->left, student);
 	}
 	else if (student.ID > root->student.ID) {
-		root->right = insertHelper(root->right, student);
+		root->right = insert_Helper(root->right, student);
 	}
 	root->height = findHeight(root);
 	
@@ -226,58 +222,14 @@ AVL::Node* AVL::insertHelper(Node* root, Student student) {
 	return root;
 }
 
-
-// AVL::Node* AVL::insertHelper(Node* root, Student student) {
-
-// 	if(IDExist(_root, student.ID)){
-// 		cout << "unsuccessful" << endl;
-// 		return nullptr;
-// 	}
-// 	if (root == nullptr) {
-// 		cout << "successful" << endl;
-// 		return new Node(student);
-// 	}
-// 	else if (student.ID < root->student.ID) {
-// 		root->left = insertHelper(root->left, student);
-// 	}
-// 	else if (student.ID > root->student.ID) {
-// 		root->right = insertHelper(root->right, student);
-// 	}
-// 	root->height = findHeight(root);
-	
-// 	//subtree is right heavy
-// 	if(findHeight(root->left) - findHeight(root->right) < -1){
-// 		if(findHeight(root->right->left) - findHeight(root->right->right) > 0){
-// 			//right left rotation & update height
-// 			root = rotateLeft(rotateRight(root));
-// 			root->height = findHeight(root);
-// 		}
-// 		else{
-// 			//left rotation & update height
-// 			root = rotateLeft(root);
-// 			root->height = findHeight(root);
-// 		}
-// 	}
-// 	//subtree is left heavy
-// 	if(findHeight(root->left) - findHeight(root->right) > 1){
-// 		if(findHeight(root->left->left) - findHeight(root->left->right) < 0){
-// 			//left right rotation & update height
-// 			root = rotateRight(rotateLeft(root));
-// 			root->height = findHeight(root);
-// 		}
-// 		else{
-// 			//right rotation & update height
-// 			root = rotateRight(root);
-// 			root->height = findHeight(root);
-// 		}
-// 	}
-// 	return root;
-// }
-
 void AVL::insert(Student student){
 	
-    _root = insertHelper(_root, student);
+    _root = insert_Helper(_root, student);
 }
+
+/*Search for the student with the specified ID from the tree.
+If the ID was found, print out their NAME.
+If the ID does not exist within the tree, print “unsuccessful”.*/
 
 AVL::Node* AVL::searchID_Helper(Node* root, int ID){
 
@@ -303,6 +255,12 @@ void AVL::searchID(int ID){
 
 	Node* temp = searchID_Helper(_root, ID);
 }
+
+/*Search for the student with the specified name, NAME in the tree.
+If the student name was found, print the associated ID.
+If the tree has more than one object with the same NAME, print each ID on a new line with no other spaces and in the same relative order as a pre-order traversal.
+If the name does not exist within the tree, print “unsuccessful”.
+NAME identifier will be surrounded by double quotes for parsing, e.g. "Josh Smith".*/
 
 AVL::Node* AVL::searchName_Helper(Node* root, string name){
 
@@ -330,6 +288,8 @@ void AVL::searchName(string name){
 	Node* temp = searchName_Helper(_root, name);
 }
 
+/*Print out a comma separated preorder traversal of the names in the tree.*/
+
 void AVL::printPreOrder_Helper(Node* root, vector<string>& names){
 	
 	if(root == nullptr){
@@ -353,6 +313,8 @@ void AVL::printPreOrder(){
 	cout << endl;
 }
 
+/*Print out a comma separated inorder traversal of the names in the tree.*/
+
 void AVL::printInOrder_Helper(Node* root, vector<string>& names) {
 
 	if (root == nullptr) {
@@ -374,6 +336,8 @@ void AVL::printInOrder(){
 	}
 	cout << endl;
 }
+
+/*Print out a comma separated postorder traversal of the names in the tree.*/
 
 void AVL::printPostOrder_Helper(Node* root, vector<string>& names){
 
@@ -397,6 +361,9 @@ void AVL::printPostOrder(){
 	}
 	cout << endl;
 }
+
+/*Prints the number of levels that exist in the tree.
+Prints 0 if the head of the tree is null. For example, the tree in Fig. 1 has 4 levels.*/
 
 void AVL::printLevelCount(){
 
