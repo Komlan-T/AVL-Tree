@@ -42,9 +42,9 @@ struct AVL {
 
 	/*==== Insertion / Deletion ====*/
 	Node* insert_Helper(Node* root, Student student);
-	//Node* remove_Helper(Node* root, int ID);
+	void remove_Helper(Node* root, int ID);
 	void insert(Student student);
-	//void remove(int ID);
+	void remove(int ID);
 	//Node* removeInOrder(int N);
 
 
@@ -55,11 +55,13 @@ struct AVL {
     void searchName(string name);
 	bool nameExist(Node*root, string name);
 	bool IDExist(Node* root, int ID);
+	Node* findParent(Node* root, int ID);
 
 	/*==== Behaviors ====*/
     int findHeight(Node* node);
 	Node* rotateLeft(Node* node);
 	Node* rotateRight(Node* node);
+	Node* findRightMost(Node* node);
 	void printPreOrder_Helper(Node* root, vector<string>& names);
     void printPreOrder();
 	void printInOrder_Helper(Node* root, vector<string>& names);
@@ -97,6 +99,22 @@ int AVL::findHeight(Node* node){
 	else{
 		return max(findHeight(node->left), findHeight(node->right)) +  1;
 	}
+}
+
+AVL::Node* AVL::findParent(Node* root, int ID){
+
+	if(_root->student.ID != ID){
+		if(root->left->student.ID == ID || root->right->student.ID == ID){
+		return root;
+	}
+	else if(ID < root->student.ID){
+		root->left = findParent(root->left, ID);
+	}
+	else if(ID > root->student.ID){
+		root->right = findParent(root->left, ID);
+	}
+	}
+	return nullptr;
 }
 
 bool AVL::nameExist(Node* root, string name){
@@ -225,6 +243,95 @@ AVL::Node* AVL::insert_Helper(Node* root, Student student) {
 void AVL::insert(Student student){
 	
     _root = insert_Helper(_root, student);
+}
+
+AVL::Node* AVL::findRightMost(Node* node){
+
+	while(node != nullptr){
+		node = node->right;
+	}
+	return node;
+}
+
+/*Find and remove the account with the specified ID from the tree.
+[Optional: Balance the tree automatically if necessary. We will test your code only on cases where the tree will be balanced before and after the deletion. So you can implement a BST deletion and still get full credit]
+If deletion is successful, print “successful”.
+If the ID does not exist within the tree, print “unsuccessful”.
+You must prioritize replacing a removed node with its inorder successor for the case where the deleted node has two children.*/
+
+void AVL::remove_Helper(Node* root, int ID){
+
+	if(IDExist(_root, ID)){
+		if(root->student.ID == ID){
+			//Case 1 No kids / Leaf Node
+			Node* parent = findParent(_root, ID);
+			if(root->left == nullptr && root->right == nullptr){
+				if(ID < parent->student.ID){
+					parent->left = nullptr;
+				}
+				else if(ID > parent->student.ID){
+					parent->right = nullptr;
+				}
+			}
+			//Case 2 One kid
+			if((root->left != nullptr && root->right == nullptr) || (root->left == nullptr && root->right != nullptr)){
+				if(ID < parent->student.ID){
+					if(root->left != nullptr){
+						parent->left = root->left;
+					}
+					else if(root->right != nullptr){
+						parent->left = root->right;
+					}
+				}
+				else if(ID > parent->student.ID){
+					if(root->left != nullptr){
+						parent->right = root->left;
+					}
+					else if(root->right != nullptr){
+						parent->right = root->right;
+					}
+				}
+			}
+			//Case 3 Two kids
+			if(root->left != nullptr && root->right != nullptr){
+				if(root->left->right == nullptr){
+					if(ID < parent->student.ID){
+						parent->left = root->left;
+					}
+					else if(ID > parent->student.ID){
+						parent->right = root->left;
+					}
+				}
+				else{
+					Node* inOrderSuccessor = findRightMost(root->left->right);
+					root->student.ID = inOrderSuccessor->student.ID;
+					if(ID < parent->student.ID){
+						parent->left = root->left;
+					}
+					else if(ID > parent->student.ID){
+						parent->right = root->left;
+					}
+				}
+			}
+			delete root;
+			cout << "successful" << endl;
+			return;
+		}
+		else if(ID < root->student.ID){
+			remove_Helper(root->left, ID);
+		}
+		else if(ID > root->student.ID){
+			remove_Helper(root->right, ID);
+		}
+	}
+	else{
+		cout << "unsuccessful" << endl;
+	}
+}
+
+void AVL::remove(int ID){
+
+	remove_Helper(_root, ID);
 }
 
 /*Search for the student with the specified ID from the tree.
@@ -367,9 +474,5 @@ Prints 0 if the head of the tree is null. For example, the tree in Fig. 1 has 4 
 
 void AVL::printLevelCount(){
 
-	if(_root == nullptr){
-		cout << "0" << endl;
-		return;
-	}
 	cout << findHeight(_root) << endl;
 }
