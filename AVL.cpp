@@ -23,17 +23,18 @@ struct AVL {
 		Student student;
 		Node* left;
 		Node* right;
-        int height;
+		int height;
 
 		Node(Student student) {
 			this->student = student;
 			left = nullptr;
 			right = nullptr;
-            height = 0;
+			height = 0;
 		}
 	};
 
 	Node* _root;
+	int nodeCount;
 
 	/*==== Construction / Destruction ====*/
 	AVL();
@@ -45,129 +46,116 @@ struct AVL {
 	void remove_Helper(Node* root, int ID);
 	void insert(Student student);
 	void remove(int ID);
-	//Node* removeInOrder(int N);
+	void removeRoot();
+	void removeInOrder_Helper(int N, int& increment, Node* root);
+	void removeInOrder(int N);
 
 
 	/*==== Search ====*/
 	Node* searchName_Helper(Node* root, string name);
 	Node* searchID_Helper(Node* root, int ID);
-    void searchID(int ID);
-    void searchName(string name);
-	bool nameExist(Node*root, string name);
+	void searchID(int ID);
+	void searchName(string name);
+	bool nameExist(Node* root, string name);
 	bool IDExist(Node* root, int ID);
 	Node* findParent(Node* root, int ID);
 
 	/*==== Behaviors ====*/
-    int findHeight(Node* node);
+	int findHeight(Node* node);
 	Node* rotateLeft(Node* node);
 	Node* rotateRight(Node* node);
-	Node* findRightMost(Node* node);
+	Node* findLeftMost(Node* node);
 	void printPreOrder_Helper(Node* root, vector<string>& names);
-    void printPreOrder();
+	void printPreOrder();
 	void printInOrder_Helper(Node* root, vector<string>& names);
-    void printInOrder();
+	void printInOrder();
 	void printPostOrder_Helper(Node* root, vector<string>& names);
-    void printPostOrder();
+	void printPostOrder();
 	void printLevelCount();
 };
 
 AVL::AVL() {
 	_root = nullptr;
+	nodeCount = 0;
 };
 
-void AVL::destruct(Node* root) 
+void AVL::destruct(Node* root)
 {
-  if (root->left){
-    destruct(root->left);
-  }
-  if (root->right){
-    destruct(root->right);
-  }
-  delete root;
+	if (root->left) {
+		destruct(root->left);
+	}
+	if (root->right) {
+		destruct(root->right);
+	}
+	delete root;
 }
 
-AVL::~AVL(){
+AVL::~AVL() {
 
 	destruct(_root);
 }
 
-int AVL::findHeight(Node* node){
+int AVL::findHeight(Node* node) {
 
-	if(node == nullptr){
+	if (node == nullptr) {
 		return 0;
 	}
-	else{
-		return max(findHeight(node->left), findHeight(node->right)) +  1;
+	else {
+		return 1 + max(findHeight(node->left), findHeight(node->right));
 	}
 }
 
-AVL::Node* AVL::findParent(Node* root, int ID){
-
-	if(_root->student.ID != ID){
-		if(root->left->student.ID == ID || root->right->student.ID == ID){
-		return root;
-	}
-	else if(ID < root->student.ID){
-		root->left = findParent(root->left, ID);
-	}
-	else if(ID > root->student.ID){
-		root->right = findParent(root->left, ID);
-	}
-	}
-	return nullptr;
-}
-
-bool AVL::nameExist(Node* root, string name){
-
-    queue<Node*> nodes;
-
-    if(root != nullptr){
-      nodes.push(root);
-    }
-
-    while(!nodes.empty()){
-
-      if(nodes.front()->left != nullptr){
-        nodes.push(nodes.front()->left);
-      }
-      if(nodes.front()->right != nullptr){
-        nodes.push(nodes.front()->right);
-      }
-      
-	  if(nodes.front()->student.name == name){
-		return true;
-	  }
-      nodes.pop();
-    }
-	return false;
-}
-
-bool AVL::IDExist(Node* root, int ID){
+bool AVL::nameExist(Node* root, string name) {
 
 	queue<Node*> nodes;
 
-    if(root != nullptr){
-      nodes.push(root);
-    }
+	if (root != nullptr) {
+		nodes.push(root);
+	}
 
-    while(!nodes.empty()){
+	while (!nodes.empty()) {
 
-      if(nodes.front()->left != nullptr){
-        nodes.push(nodes.front()->left);
-      }
-      if(nodes.front()->right != nullptr){
-        nodes.push(nodes.front()->right);
-      }
-      
-	  if(nodes.front()->student.ID == ID){
-		return true;
-	  }
-      nodes.pop();
-    }
+		if (nodes.front()->left != nullptr) {
+			nodes.push(nodes.front()->left);
+		}
+		if (nodes.front()->right != nullptr) {
+			nodes.push(nodes.front()->right);
+		}
+
+		if (nodes.front()->student.name == name) {
+			return true;
+		}
+		nodes.pop();
+	}
 	return false;
 }
 
-AVL::Node* AVL::rotateLeft(Node* node){
+bool AVL::IDExist(Node* root, int ID) {
+
+	queue<Node*> nodes;
+
+	if (root != nullptr) {
+		nodes.push(root);
+	}
+
+	while (!nodes.empty()) {
+
+		if (nodes.front()->left != nullptr) {
+			nodes.push(nodes.front()->left);
+		}
+		if (nodes.front()->right != nullptr) {
+			nodes.push(nodes.front()->right);
+		}
+
+		if (nodes.front()->student.ID == ID) {
+			return true;
+		}
+		nodes.pop();
+	}
+	return false;
+}
+
+AVL::Node* AVL::rotateLeft(Node* node) {
 
 	Node* grandchild = node->right->left;
 	Node* newParent = node->right;
@@ -176,7 +164,7 @@ AVL::Node* AVL::rotateLeft(Node* node){
 	return newParent;
 }
 
-AVL::Node* AVL::rotateRight(Node* node){
+AVL::Node* AVL::rotateRight(Node* node) {
 
 	Node* grandchild = node->left->right;
 	Node* newParent = node->left;
@@ -194,63 +182,81 @@ NAME identifier will be separated by double inverted commas for parsing, e.g. "J
 
 AVL::Node* AVL::insert_Helper(Node* root, Student student) {
 
-	if(IDExist(_root, student.ID) == false){
+	if (IDExist(_root, student.ID) == false) {
 		if (root == nullptr) {
-		cout << "successful" << endl;
-		return new Node(student);
-	}
-	else if (student.ID < root->student.ID) {
-		root->left = insert_Helper(root->left, student);
-	}
-	else if (student.ID > root->student.ID) {
-		root->right = insert_Helper(root->right, student);
-	}
-	root->height = findHeight(root);
-	
-	//subtree is right heavy
-	if(findHeight(root->left) - findHeight(root->right) < -1){
-		if(findHeight(root->right->left) - findHeight(root->right->right) > 0){
-			//right left rotation & update height
-			root = rotateLeft(rotateRight(root));
-			root->height = findHeight(root);
+			cout << "successful" << endl;
+			nodeCount++;
+			return new Node(student);
 		}
-		else{
-			//left rotation & update height
-			root = rotateLeft(root);
-			root->height = findHeight(root);
+		else if (student.ID < root->student.ID) {
+			root->left = insert_Helper(root->left, student);
+		}
+		else if (student.ID > root->student.ID) {
+			root->right = insert_Helper(root->right, student);
+		}
+		//root->height = findHeight(root);
+
+		//subtree is right heavy
+		if (findHeight(root->left) - findHeight(root->right) < -1) {
+			//subtree's right is left heavy
+			if (findHeight(root->right->left) - findHeight(root->right->right) > 0) {
+				//right left rotation & update height
+				root->right = rotateRight(root->right);
+				root = rotateLeft(root);
+				root->height = findHeight(root);
+			}
+			else {
+				//left rotation & update height
+				root = rotateLeft(root);
+				root->height = findHeight(root);
+			}
+		}
+		//subtree is left heavy
+		if (findHeight(root->left) - findHeight(root->right) > 1) {
+			//subtree's left is right heavy
+			if (findHeight(root->left->left) - findHeight(root->left->right) < 0) {
+				//left right rotation & update height
+				root->left = rotateLeft(root->left);
+				root = rotateRight(root);
+				root->height = findHeight(root);
+			}
+			else {
+				//right rotation & update height
+				root = rotateRight(root);
+				root->height = findHeight(root);
+			}
 		}
 	}
-	//subtree is left heavy
-	if(findHeight(root->left) - findHeight(root->right) > 1){
-		if(findHeight(root->left->left) - findHeight(root->left->right) < 0){
-			//left right rotation & update height
-			root = rotateRight(rotateLeft(root));
-			root->height = findHeight(root);
-		}
-		else{
-			//right rotation & update height
-			root = rotateRight(root);
-			root->height = findHeight(root);
-		}
-	}
-	}
-	else{
+	else {
 		cout << "unsuccessful" << endl;
 	}
 	return root;
 }
 
-void AVL::insert(Student student){
-	
-    _root = insert_Helper(_root, student);
+void AVL::insert(Student student) {
+
+	_root = insert_Helper(_root, student);
 }
 
-AVL::Node* AVL::findRightMost(Node* node){
+AVL::Node* AVL::findLeftMost(Node* node) {
 
-	while(node != nullptr){
-		node = node->right;
+	while (node->left != nullptr) {
+		node = node->left;
 	}
 	return node;
+}
+
+AVL::Node* AVL::findParent(Node* root, int ID) {
+
+	if (root->left->student.ID == ID || root->right->student.ID == ID) {
+		return root;
+	}
+	else if (ID < root->student.ID) {
+		root->left = findParent(root->left, ID);
+	}
+	else if (ID > root->student.ID) {
+		root->right = findParent(root->right, ID);
+	}
 }
 
 /*Find and remove the account with the specified ID from the tree.
@@ -259,106 +265,208 @@ If deletion is successful, print “successful”.
 If the ID does not exist within the tree, print “unsuccessful”.
 You must prioritize replacing a removed node with its inorder successor for the case where the deleted node has two children.*/
 
-void AVL::remove_Helper(Node* root, int ID){
+void AVL::remove_Helper(Node* root, int ID) {
 
-	if(IDExist(_root, ID)){
-		if(root->student.ID == ID){
+	if (IDExist(_root, ID)) {
+		if (root->student.ID == ID) {
 			//Case 1 No kids / Leaf Node
 			Node* parent = findParent(_root, ID);
-			if(root->left == nullptr && root->right == nullptr){
-				if(ID < parent->student.ID){
+			if (root->left == nullptr && root->right == nullptr) {
+				if (ID < parent->student.ID) {
 					parent->left = nullptr;
 				}
-				else if(ID > parent->student.ID){
+				else if (ID > parent->student.ID) {
 					parent->right = nullptr;
 				}
+				delete root;
+				cout << "successful" << endl;
+				nodeCount--;
+				return;
 			}
 			//Case 2 One kid
-			if((root->left != nullptr && root->right == nullptr) || (root->left == nullptr && root->right != nullptr)){
-				if(ID < parent->student.ID){
-					if(root->left != nullptr){
+			if ((root->left != nullptr && root->right == nullptr) || (root->left == nullptr && root->right != nullptr)) {
+				if (ID < parent->student.ID) {
+					if (root->left != nullptr) {
 						parent->left = root->left;
 					}
-					else if(root->right != nullptr){
+					else if (root->right != nullptr) {
 						parent->left = root->right;
 					}
 				}
-				else if(ID > parent->student.ID){
-					if(root->left != nullptr){
+				else if (ID > parent->student.ID) {
+					if (root->left != nullptr) {
 						parent->right = root->left;
 					}
-					else if(root->right != nullptr){
+					else if (root->right != nullptr) {
 						parent->right = root->right;
 					}
 				}
+				delete root;
+				cout << "successful" << endl;
+				nodeCount--;
+				return;
 			}
 			//Case 3 Two kids
-			if(root->left != nullptr && root->right != nullptr){
-				if(root->left->right == nullptr){
-					if(ID < parent->student.ID){
-						parent->left = root->left;
+			if (root->left != nullptr && root->right != nullptr) {
+				if (root->right->left == nullptr) {
+					if (ID < parent->student.ID) {
+						root->right->left = root->left;
+						parent->left = root->right;
 					}
-					else if(ID > parent->student.ID){
-						parent->right = root->left;
+					else if (ID > parent->student.ID) {
+						root->right->left = root->left;
+						parent->right = root->right;
 					}
+					delete root;
+					cout << "successful" << endl;
+					nodeCount--;
+					return;
 				}
-				else{
-					Node* inOrderSuccessor = findRightMost(root->left->right);
+				else {
+					Node* inOrderSuccessor = findLeftMost(root->right);
+					Node* inOrderParent = findParent(_root, inOrderSuccessor->student.ID);
 					root->student.ID = inOrderSuccessor->student.ID;
-					if(ID < parent->student.ID){
-						parent->left = root->left;
-					}
-					else if(ID > parent->student.ID){
-						parent->right = root->left;
-					}
+					root->student.name = inOrderSuccessor->student.name;
+					inOrderParent->left = nullptr;
+					delete inOrderSuccessor;
+					cout << "successful" << endl;
+					nodeCount--;
+					return;
 				}
 			}
-			delete root;
-			cout << "successful" << endl;
-			return;
 		}
-		else if(ID < root->student.ID){
+		else if (ID < root->student.ID) {
 			remove_Helper(root->left, ID);
 		}
-		else if(ID > root->student.ID){
+		else if (ID > root->student.ID) {
 			remove_Helper(root->right, ID);
 		}
 	}
-	else{
+	else {
 		cout << "unsuccessful" << endl;
 	}
 }
 
-void AVL::remove(int ID){
+void AVL::removeRoot() {
 
-	remove_Helper(_root, ID);
+	if (_root->left == nullptr && _root->right == nullptr) {
+		delete _root;
+		cout << "successful" << endl;
+		nodeCount--;
+		return;
+	}
+	if ((_root->left != nullptr && _root->right == nullptr) || (_root->left == nullptr && _root->right != nullptr)) {
+		if (_root->left != nullptr) {
+			_root->student.name = _root->left->student.name;
+			_root->student.ID = _root->left->student.ID;
+			delete _root->left;
+		}
+		if (_root->right != nullptr) {
+			_root->student.name = _root->right->student.name;
+			_root->student.ID = _root->right->student.ID;
+			delete _root->right;
+		}
+		cout << "successful" << endl;
+		nodeCount--;
+		return;
+	}
+	if (_root->left != nullptr && _root->right != nullptr) {
+		if (_root->right->left == nullptr) {
+			_root->student.ID = _root->right->student.ID;
+			_root->student.name = _root->right->student.name;
+			if (_root->right->right != nullptr) {
+				_root->right = _root->right->right;
+			}
+			else {
+				_root->right = nullptr;
+			}
+			delete _root->right;
+			cout << "successful" << endl;
+			nodeCount--;
+			return;
+		}
+		else {
+			Node* inOrderSuccessor = findLeftMost(_root->right);
+			Node* inOrderParent = findParent(_root, inOrderSuccessor->student.ID);
+			_root->student.ID = inOrderSuccessor->student.ID;
+			_root->student.name = inOrderSuccessor->student.name;
+			inOrderParent->left = nullptr;
+			delete inOrderSuccessor;
+			cout << "successful" << endl;
+			nodeCount--;
+			return;
+		}
+	}
+}
+
+void AVL::remove(int ID) {
+
+	if (_root->student.ID == ID) {
+		removeRoot();
+	}
+	else {
+		remove_Helper(_root, ID);
+	}
+}
+
+void AVL::removeInOrder_Helper(int N, int& increment, Node* root) {
+
+	if (N < 0 || N > nodeCount - 1) {
+		cout << "unsuccessful" << endl;
+		return;
+	}
+	if (root == nullptr) {
+		return;
+	}
+	else {
+		removeInOrder_Helper(N, increment, root->left);
+		if (root->left == nullptr) {
+			increment++;
+		}
+		if (increment == N) {
+			remove(root->student.ID);
+			increment++;
+			return;
+		}
+		removeInOrder_Helper(N, increment, root->right);
+		if (root->right == nullptr) {
+			increment++;
+		}
+	}
+}
+
+void AVL::removeInOrder(int N) {
+
+	int increment = -1;
+	removeInOrder_Helper(N, increment, _root);
 }
 
 /*Search for the student with the specified ID from the tree.
 If the ID was found, print out their NAME.
 If the ID does not exist within the tree, print “unsuccessful”.*/
 
-AVL::Node* AVL::searchID_Helper(Node* root, int ID){
+AVL::Node* AVL::searchID_Helper(Node* root, int ID) {
 
-	if(root == nullptr){
+	if (root == nullptr) {
 		cout << "unsuccessful" << endl;
 		return nullptr;
-	} else{
-		if(root->student.ID == ID){
+	}
+	else {
+		if (root->student.ID == ID) {
 			cout << root->student.name << endl;
 			return root;
 		}
-		else if(ID < root->student.ID){
+		else if (ID < root->student.ID) {
 			root->left = searchID_Helper(root->left, ID);
 		}
-		else if(ID > root->student.ID){
+		else if (ID > root->student.ID) {
 			root->right = searchID_Helper(root->right, ID);
 		}
 	}
 	return nullptr;
 }
 
-void AVL::searchID(int ID){
+void AVL::searchID(int ID) {
 
 	Node* temp = searchID_Helper(_root, ID);
 }
@@ -369,40 +477,40 @@ If the tree has more than one object with the same NAME, print each ID on a new 
 If the name does not exist within the tree, print “unsuccessful”.
 NAME identifier will be surrounded by double quotes for parsing, e.g. "Josh Smith".*/
 
-AVL::Node* AVL::searchName_Helper(Node* root, string name){
+AVL::Node* AVL::searchName_Helper(Node* root, string name) {
 
-	if(nameExist(_root, name) ){
-		if(root == nullptr){
-		return nullptr;
-	}
-	else{
-		if(root->student.name == name){
-			cout << root->student.ID << endl;
-			return root;
+	if (nameExist(_root, name)) {
+		if (root == nullptr) {
+			return nullptr;
 		}
-		root->left = searchName_Helper(root->left, name);
-		root->right = searchName_Helper(root->right, name);
-	} 
+		else {
+			if (root->student.name == name) {
+				cout << root->student.ID << endl;
+				return root;
+			}
+			root->left = searchName_Helper(root->left, name);
+			root->right = searchName_Helper(root->right, name);
+		}
 	}
-	else{
+	else {
 		cout << "unsuccessful" << endl;
 	}
 	return nullptr;
 }
 
-void AVL::searchName(string name){
-	
+void AVL::searchName(string name) {
+
 	Node* temp = searchName_Helper(_root, name);
 }
 
 /*Print out a comma separated preorder traversal of the names in the tree.*/
 
-void AVL::printPreOrder_Helper(Node* root, vector<string>& names){
-	
-	if(root == nullptr){
+void AVL::printPreOrder_Helper(Node* root, vector<string>& names) {
+
+	if (root == nullptr) {
 		return;
 	}
-	else{
+	else {
 		names.push_back(root->student.name);
 		names.push_back(", ");
 		printPreOrder_Helper(root->left, names);
@@ -410,11 +518,11 @@ void AVL::printPreOrder_Helper(Node* root, vector<string>& names){
 	}
 }
 
-void AVL::printPreOrder(){
+void AVL::printPreOrder() {
 
 	vector<string> names;
-    printPreOrder_Helper(_root, names);
-	for(int i = 0; i < names.size() - 1; i++){
+	printPreOrder_Helper(_root, names);
+	for (int i = 0; i < names.size() - 1; i++) {
 		cout << names[i];
 	}
 	cout << endl;
@@ -435,10 +543,11 @@ void AVL::printInOrder_Helper(Node* root, vector<string>& names) {
 	}
 }
 
-void AVL::printInOrder(){
+void AVL::printInOrder() {
+
 	vector<string> names;
-    printInOrder_Helper(_root, names);
-    for(int i = 0; i < names.size() - 1; i++){
+	printInOrder_Helper(_root, names);
+	for (int i = 0; i < names.size() - 1; i++) {
 		cout << names[i];
 	}
 	cout << endl;
@@ -446,12 +555,12 @@ void AVL::printInOrder(){
 
 /*Print out a comma separated postorder traversal of the names in the tree.*/
 
-void AVL::printPostOrder_Helper(Node* root, vector<string>& names){
+void AVL::printPostOrder_Helper(Node* root, vector<string>& names) {
 
-	if(root == nullptr){
+	if (root == nullptr) {
 		return;
 	}
-	else{
+	else {
 		printPostOrder_Helper(root->left, names);
 		printPostOrder_Helper(root->right, names);
 		names.push_back(root->student.name);
@@ -459,11 +568,11 @@ void AVL::printPostOrder_Helper(Node* root, vector<string>& names){
 	}
 }
 
-void AVL::printPostOrder(){
+void AVL::printPostOrder() {
 
 	vector<string> names;
-    printPostOrder_Helper(_root, names);
-    for(int i = 0; i < names.size() - 1; i++){
+	printPostOrder_Helper(_root, names);
+	for (int i = 0; i < names.size() - 1; i++) {
 		cout << names[i];
 	}
 	cout << endl;
@@ -472,7 +581,7 @@ void AVL::printPostOrder(){
 /*Prints the number of levels that exist in the tree.
 Prints 0 if the head of the tree is null. For example, the tree in Fig. 1 has 4 levels.*/
 
-void AVL::printLevelCount(){
+void AVL::printLevelCount() {
 
 	cout << findHeight(_root) << endl;
 }
