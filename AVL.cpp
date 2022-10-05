@@ -48,7 +48,7 @@ struct AVL {
 	void remove(int ID);
 	void removeRoot();
 	void removeInOrder_Helper(int N, int& increment, Node* root);
-	void removeInOrder(int N);
+	void removeInorder(int N);
 
 
 	/*==== Search ====*/
@@ -66,11 +66,11 @@ struct AVL {
 	Node* rotateRight(Node* node);
 	Node* findLeftMost(Node* node);
 	void printPreOrder_Helper(Node* root, vector<string>& names);
-	void printPreOrder();
+	void printPreorder();
 	void printInOrder_Helper(Node* root, vector<string>& names);
-	void printInOrder();
+	void printInorder();
 	void printPostOrder_Helper(Node* root, vector<string>& names);
-	void printPostOrder();
+	void printPostorder();
 	void printLevelCount();
 };
 
@@ -194,7 +194,6 @@ AVL::Node* AVL::insert_Helper(Node* root, Student student) {
 		else if (student.ID > root->student.ID) {
 			root->right = insert_Helper(root->right, student);
 		}
-		//root->height = findHeight(root);
 
 		//subtree is right heavy
 		if (findHeight(root->left) - findHeight(root->right) < -1) {
@@ -435,7 +434,7 @@ void AVL::removeInOrder_Helper(int N, int& increment, Node* root) {
 	}
 }
 
-void AVL::removeInOrder(int N) {
+void AVL::removeInorder(int N) {
 
 	int increment = -1;
 	removeInOrder_Helper(N, increment, _root);
@@ -518,7 +517,7 @@ void AVL::printPreOrder_Helper(Node* root, vector<string>& names) {
 	}
 }
 
-void AVL::printPreOrder() {
+void AVL::printPreorder() {
 
 	vector<string> names;
 	printPreOrder_Helper(_root, names);
@@ -543,7 +542,7 @@ void AVL::printInOrder_Helper(Node* root, vector<string>& names) {
 	}
 }
 
-void AVL::printInOrder() {
+void AVL::printInorder() {
 
 	vector<string> names;
 	printInOrder_Helper(_root, names);
@@ -568,7 +567,7 @@ void AVL::printPostOrder_Helper(Node* root, vector<string>& names) {
 	}
 }
 
-void AVL::printPostOrder() {
+void AVL::printPostorder() {
 
 	vector<string> names;
 	printPostOrder_Helper(_root, names);
