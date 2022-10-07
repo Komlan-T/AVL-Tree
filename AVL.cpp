@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <string>
 using namespace std;
 
 struct Student {
