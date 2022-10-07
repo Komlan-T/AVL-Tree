@@ -43,10 +43,9 @@ struct AVL {
 
 	/*==== Insertion / Deletion ====*/
 	Node* insert_Helper(Node* root, Student student);
-	void remove_Helper(Node* root, int ID);
+	Node* remove_Helper(Node* root, int ID);
 	void insert(Student student);
 	void remove(int ID);
-	void removeRoot();
 	void removeInOrder_Helper(int N, int& increment, Node* root);
 	void removeInorder(int N);
 
@@ -58,7 +57,6 @@ struct AVL {
 	void searchName(string name);
 	bool nameExist(Node* root, string name);
 	bool IDExist(Node* root, int ID);
-	Node* findParent(Node* root, int ID);
 
 	/*==== Behaviors ====*/
 	int findHeight(Node* node);
@@ -245,172 +243,70 @@ AVL::Node* AVL::findLeftMost(Node* node) {
 	return node;
 }
 
-AVL::Node* AVL::findParent(Node* root, int ID) {
-
-	if (root->left->student.ID == ID || root->right->student.ID == ID) {
-		return root;
-	}
-	else if (ID < root->student.ID) {
-		root->left = findParent(root->left, ID);
-	}
-	else if (ID > root->student.ID) {
-		root->right = findParent(root->right, ID);
-	}
-}
-
 /*Find and remove the account with the specified ID from the tree.
 [Optional: Balance the tree automatically if necessary. We will test your code only on cases where the tree will be balanced before and after the deletion. So you can implement a BST deletion and still get full credit]
 If deletion is successful, print “successful”.
 If the ID does not exist within the tree, print “unsuccessful”.
 You must prioritize replacing a removed node with its inorder successor for the case where the deleted node has two children.*/
 
-void AVL::remove_Helper(Node* root, int ID) {
+AVL::Node* AVL::remove_Helper(Node* root, int ID) {
 
 	if (IDExist(_root, ID)) {
-		if (root->student.ID == ID) {
-			//Case 1 No kids / Leaf Node
-			Node* parent = findParent(_root, ID);
-			if (root->left == nullptr && root->right == nullptr) {
-				if (ID < parent->student.ID) {
-					parent->left = nullptr;
-				}
-				else if (ID > parent->student.ID) {
-					parent->right = nullptr;
-				}
-				delete root;
-				cout << "successful" << endl;
+		if(root == nullptr){
+			return nullptr;
+		}
+		if(ID < root->student.ID){
+			root->left = remove_Helper(root->left, ID);
+		}
+		else if(ID > root->student.ID){
+			root->right = remove_Helper(root->right, ID);
+		}
+		else if(ID == root->student.ID){
+			if(root->left == nullptr && root->right == nullptr){
 				nodeCount--;
-				return;
-			}
-			//Case 2 One kid
-			if ((root->left != nullptr && root->right == nullptr) || (root->left == nullptr && root->right != nullptr)) {
-				if (ID < parent->student.ID) {
-					if (root->left != nullptr) {
-						parent->left = root->left;
-					}
-					else if (root->right != nullptr) {
-						parent->left = root->right;
-					}
-				}
-				else if (ID > parent->student.ID) {
-					if (root->left != nullptr) {
-						parent->right = root->left;
-					}
-					else if (root->right != nullptr) {
-						parent->right = root->right;
-					}
-				}
-				delete root;
 				cout << "successful" << endl;
-				nodeCount--;
-				return;
+				return nullptr;
 			}
-			//Case 3 Two kids
-			if (root->left != nullptr && root->right != nullptr) {
-				if (root->right->left == nullptr) {
-					if (ID < parent->student.ID) {
-						root->right->left = root->left;
-						parent->left = root->right;
-					}
-					else if (ID > parent->student.ID) {
-						root->right->left = root->left;
-						parent->right = root->right;
-					}
+			else if((root->left != nullptr && root->right == nullptr) || (root->left == nullptr && root->right != nullptr)){
+				if(root->left == nullptr){
+					Node* temp = root->right;
 					delete root;
-					cout << "successful" << endl;
 					nodeCount--;
-					return;
-				}
-				else {
-					Node* inOrderSuccessor = findLeftMost(root->right);
-					Node* inOrderParent = findParent(_root, inOrderSuccessor->student.ID);
-					root->student.ID = inOrderSuccessor->student.ID;
-					root->student.name = inOrderSuccessor->student.name;
-					inOrderParent->left = nullptr;
-					delete inOrderSuccessor;
 					cout << "successful" << endl;
-					nodeCount--;
-					return;
+					return temp;
 				}
+				else if(root->right == nullptr){
+					Node* temp = root->left;
+					delete root;
+					nodeCount--;
+					cout << "successful" << endl;
+					return temp;
+				}	
 			}
-		}
-		else if (ID < root->student.ID) {
-			remove_Helper(root->left, ID);
-		}
-		else if (ID > root->student.ID) {
-			remove_Helper(root->right, ID);
+			else if(root->left != nullptr && root->right != nullptr){
+				Node* successor = findLeftMost(root->right);
+				root->student.name = successor->student.name;
+				root->student.ID = successor->student.ID;
+				root->right = remove_Helper(root->right, successor->student.ID);
+				return root;
+			}
 		}
 	}
 	else {
 		cout << "unsuccessful" << endl;
 	}
+	return root;
 }
 
-void AVL::removeRoot() {
-
-	if (_root->left == nullptr && _root->right == nullptr) {
-		delete _root;
-		cout << "successful" << endl;
-		nodeCount--;
-		return;
-	}
-	if ((_root->left != nullptr && _root->right == nullptr) || (_root->left == nullptr && _root->right != nullptr)) {
-		if (_root->left != nullptr) {
-			_root->student.name = _root->left->student.name;
-			_root->student.ID = _root->left->student.ID;
-			delete _root->left;
-		}
-		if (_root->right != nullptr) {
-			_root->student.name = _root->right->student.name;
-			_root->student.ID = _root->right->student.ID;
-			delete _root->right;
-		}
-		cout << "successful" << endl;
-		nodeCount--;
-		return;
-	}
-	if (_root->left != nullptr && _root->right != nullptr) {
-		if (_root->right->left == nullptr) {
-			_root->student.ID = _root->right->student.ID;
-			_root->student.name = _root->right->student.name;
-			if (_root->right->right != nullptr) {
-				_root->right = _root->right->right;
-			}
-			else {
-				_root->right = nullptr;
-			}
-			delete _root->right;
-			cout << "successful" << endl;
-			nodeCount--;
-			return;
-		}
-		else {
-			Node* inOrderSuccessor = findLeftMost(_root->right);
-			Node* inOrderParent = findParent(_root, inOrderSuccessor->student.ID);
-			_root->student.ID = inOrderSuccessor->student.ID;
-			_root->student.name = inOrderSuccessor->student.name;
-			inOrderParent->left = nullptr;
-			delete inOrderSuccessor;
-			cout << "successful" << endl;
-			nodeCount--;
-			return;
-		}
-	}
-}
 
 void AVL::remove(int ID) {
 
-	if (_root->student.ID == ID) {
-		removeRoot();
-	}
-	else {
-		remove_Helper(_root, ID);
-	}
+	_root = remove_Helper(_root, ID);
 }
 
 void AVL::removeInOrder_Helper(int N, int& increment, Node* root) {
 
-	if (N < 0 || N > nodeCount - 1) {
+	if (N < 0 || N > nodeCount) {
 		cout << "unsuccessful" << endl;
 		return;
 	}
@@ -581,6 +477,6 @@ void AVL::printPostorder() {
 Prints 0 if the head of the tree is null. For example, the tree in Fig. 1 has 4 levels.*/
 
 void AVL::printLevelCount() {
-
+	
 	cout << findHeight(_root) << endl;
 }
