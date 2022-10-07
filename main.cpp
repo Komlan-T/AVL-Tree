@@ -1,6 +1,4 @@
 #include <iostream>
-#include <sstream>
-#include <stdexcept>
 #include "AVL.h"
 
 /* Note:
