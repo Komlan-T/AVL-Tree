@@ -87,7 +87,7 @@ int main() {
 			in >> name;
 			string ID;
 			in >> ID;
-			
+
 			if (validName(name) && validID(ID)) {
 
 				name.erase(0, 1);
@@ -105,12 +105,13 @@ int main() {
 		else if (command == "search") {
 			string next;
 			in >> next;
-			try {
-				int convert = stoi(next);
-				tree.searchID(convert);
-			}
-			catch (invalid_argument) {
+			if (next[0] == '"') {
+				next.erase(0, 1);
+				next.pop_back();
 				tree.searchName(next);
+			}
+			else {
+				tree.searchID(stoi(next));
 			}
 		}
 		else if (command == "printInorder") {
